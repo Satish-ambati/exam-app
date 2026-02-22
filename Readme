@@ -1,0 +1,151 @@
+# 🔐 SecureExam Browser v2.0
+
+A cross-platform desktop application for controlled online examination environments built with Electron.
+
+---
+
+## 🚀 Quick Start
+
+```bash
+npm install
+npm start
+```
+
+**Default Admin Password:** `admin@exam2024`  
+**Force Quit Password:** `admin@exam2024#quit`
+
+---
+
+## 📁 Project Structure
+
+```
+secure-exam-browser/
+├── main.js         ← Electron main process (kiosk, security, IPC)
+├── preload.js      ← Secure bridge (contextBridge API)
+├── index.html      ← UI layout
+├── renderer.js     ← Client logic, violation detection
+└── package.json
+```
+
+---
+
+## 🛡️ Security Features
+
+### Blocked Keys
+| Key Combo | Action |
+|-----------|--------|
+| `Escape` | Blocked + Locks |
+| `F11` | Blocked + Locks |
+| `Alt+Tab` | Blocked + Locks |
+| `Alt+F4` | Blocked + Locks |
+| `Ctrl+W/N/T` | Blocked |
+| `Ctrl+R / F5` | Blocked |
+| `Ctrl+Shift+I/J/C` | Blocked + Locks |
+| `Win+D / Meta+D` | Blocked + Locks |
+| `PrintScreen` | Blocked |
+| All F-Keys | Blocked |
+
+### Detected Events
+- Window blur / focus loss
+- Fullscreen exit
+- App minimize
+- Tab visibility change
+- DevTools opened
+- New window attempt
+- App close attempt
+- Right-click menu
+- Copy/cut/paste (exam mode)
+
+### Enforcement
+- **Kiosk mode** — no OS chrome visible
+- **AlwaysOnTop** — stays above all windows
+- **Focus reacquired** every 500ms
+- **globalShortcut** blocks OS-level shortcuts
+- **powerSaveBlocker** prevents sleep
+- **contextIsolation + nodeIntegration:false** for renderer security
+
+---
+
+## 📋 Violation Logging
+
+Logs are stored at:
+- **Windows:** `%APPDATA%\secure-exam-browser\violation_log.json`
+- **Linux:** `~/.config/secure-exam-browser/violation_log.json`
+
+Each entry includes:
+```json
+{
+  "id": 1234567890,
+  "timestamp": "2024-01-01T10:00:00.000Z",
+  "type": "window_blur",
+  "platform": "win32",
+  "hostname": "EXAM-PC-01",
+  "username": "student01"
+}
+```
+
+---
+
+## 🔓 Unlocking
+
+When a violation occurs:
+1. Lock screen appears immediately
+2. Admin enters `admin@exam2024`
+3. Exam resumes
+4. Violation is permanently logged
+
+After 5 failed unlock attempts, violation is escalated in the log.
+
+---
+
+## 🏗️ Deployment
+
+### Linux Lab (Recommended)
+```bash
+# Create restricted exam user
+sudo useradd -m examuser
+sudo passwd examuser
+
+# Auto-launch on login (add to ~/.bash_profile or .xinitrc)
+npm start --prefix /opt/secure-exam-browser
+```
+
+### Windows Lab
+1. Install app
+2. Set as shell via registry: `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\Shell`
+3. Or use Windows Assigned Access (Kiosk mode)
+
+---
+
+## ⚙️ Changing Admin Password
+
+In `main.js`, find and update:
+```js
+const ADMIN_PASSWORD = 'admin@exam2024';
+```
+
+In `main.js`, the quit password:
+```js
+if (password === 'admin@exam2024#quit')
+```
+
+---
+
+## 📦 Build for Distribution
+
+```bash
+# Windows installer
+npm run build:win
+
+# Linux AppImage
+npm run build:linux
+```
+
+---
+
+## 🔮 Future Enhancements
+- Webcam proctoring integration
+- Remote admin dashboard
+- Auto-submit on repeated violations
+- Face recognition on unlock
+- USB port blocking (Linux udev rules)

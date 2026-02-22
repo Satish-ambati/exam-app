@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamBar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08060E;
+      --accent: #C084FC;
+      --accent2: #818CF8;
+      --text: #F1F0F8;
+      --muted: #6B6885;
+      --success: #34D399;
+      --danger: #F87171;
+      --warn: #FBBF24;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 48px; width: 100%;
+      font-family: 'Outfit', sans-serif;
+      background: rgba(8,6,14,0.98);
+      color: var(--text);
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      border-bottom: 1px solid rgba(192,132,252,0.15);
+    }
+
+    #examBar {
+      display: flex; align-items: center;
+      height: 48px; padding: 0 20px; gap: 14px;
+    }
+
+    .exam-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px; letter-spacing: 0.1em;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; white-space: nowrap;
+    }
+
+    .divider { width: 1px; height: 20px; background: rgba(255,255,255,0.06); flex-shrink: 0; }
+
+    .exam-url {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--muted); flex: 1; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .exam-status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      color: var(--success); flex-shrink: 0;
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--success); animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+
+    #closeBtn {
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.3);
+      border-radius: 10px; padding: 7px 18px;
+      color: var(--danger);
+      font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; letter-spacing: 0.04em; white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #closeBtn:hover { background: rgba(248,113,113,0.2); }
+
+    /* ── MODAL ── */
+    #modal {
+      display: none;
+      position: fixed;
+      top: 58px; right: 20px;
+      width: 400px;
+      background: #100D1A;
+      border: 1px solid rgba(248,113,113,0.3);
+      border-radius: 20px;
+      padding: 32px 28px 28px;
+      z-index: 1000;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.85);
+      overflow: hidden;
+    }
+    #modal.open {
+      display: block;
+      animation: popIn 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    #modal::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--danger), transparent);
+    }
+
+    @keyframes popIn { from{opacity:0;transform:scale(0.9) translateY(-10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+    .modal-icon {
+      font-size: 40px; margin-bottom: 14px; display: block;
+    }
+    .modal-title {
+      font-size: 20px; font-weight: 900; margin-bottom: 8px;
+      color: var(--danger);
+    }
+    .modal-desc {
+      font-size: 13px; color: var(--text);
+      margin-bottom: 14px; line-height: 1.7;
+    }
+    .modal-warn {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: rgba(251,191,36,0.07);
+      border: 1px solid rgba(251,191,36,0.2);
+      border-radius: 12px; padding: 12px 14px;
+      margin-bottom: 24px;
+    }
+    .modal-warn-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .modal-warn-text {
+      font-size: 12px; color: var(--warn);
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.7;
+    }
+
+    .modal-btns { display: flex; gap: 10px; }
+    .btn-cancel {
+      flex: 1; padding: 13px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; color: var(--muted);
+      font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-cancel:hover { background: rgba(255,255,255,0.09); color: var(--text); }
+    .btn-confirm {
+      flex: 1; padding: 13px;
+      background: linear-gradient(135deg, #EF4444, #B91C1C);
+      border: none; border-radius: 12px; color: #fff;
+      font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em;
+    }
+    .btn-confirm:hover { box-shadow: 0 8px 24px rgba(239,68,68,0.4); transform: translateY(-1px); }
+    .btn-confirm:active { transform: translateY(0); }
+
+    /* ── TOAST ── */
+    .toast-wrap {
+      position: fixed; bottom: 12px; left: 50%;
+      transform: translateX(-50%); z-index: 2000;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      pointer-events: none;
+    }
+    .toast {
+      padding: 9px 18px; border-radius: 10px;
+      font-size: 12px; font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap; animation: toastIn 0.3s ease;
+    }
+    @keyframes toastIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .toast.danger  { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: var(--danger); }
+    .toast.success { background: rgba(52,211,153,0.1);   border: 1px solid rgba(52,211,153,0.3);  color: var(--success); }
+  </style>
+</head>
+<body>
+
+<div id="examBar">
+  <span class="exam-brand">IconCoderz</span>
+  <div class="divider"></div>
+  <span class="exam-url" id="urlDisplay">Loading exam...</span>
+  <div class="exam-status">
+    <div class="status-dot"></div>
+    LIVE
+  </div>
+</div>
+
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+  // Receive exam URL from main process
+  if (window.examAPI) {
+    window.examAPI.onSetUrl((url) => {
+      document.getElementById('urlDisplay').textContent = url;
+    });
+  }
+
+  function openModal() {
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  function confirmClose() {
+    showToast('✓ Closing session...', 'success');
+    setTimeout(() => {
+      if (window.examAPI) window.examAPI.quitApp('admin@exam2024');
+    }, 700);
+  }
+
+  function showToast(msg, type = 'danger') {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.textContent = msg;
+    document.getElementById('toastWrap').appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }
+
+  // Block cheat keys in exam bar too
+  document.addEventListener('keydown', function(e) {
+    const ctrl = e.ctrlKey, alt = e.altKey, meta = e.metaKey;
+    if (/^F\d+$/.test(e.key) || meta || alt || e.key === 'PrintScreen' || ctrl) {
+      e.preventDefault(); e.stopPropagation();
+    }
+    if (e.key === 'Escape') closeModal();
+  }, true);
+
+  document.addEventListener('contextmenu', e => e.preventDefault());
+</script>
+</body>
+</html>

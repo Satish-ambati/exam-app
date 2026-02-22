@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IconCoderz — SecureExam</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08060E;
+      --surface: #100D1A;
+      --surface2: #181424;
+      --border: rgba(255,255,255,0.06);
+      --accent: #C084FC;
+      --accent2: #818CF8;
+      --accent3: #38BDF8;
+      --neon: #E879F9;
+      --text: #F1F0F8;
+      --muted: #6B6885;
+      --success: #34D399;
+      --danger: #F87171;
+      --warn: #FBBF24;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%; width: 100%;
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(192,132,252,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(192,132,252,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    .bg-orbs {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      overflow: hidden;
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35;
+    }
+    .orb-1 { width: 500px; height: 500px; top: -150px; left: -100px; background: radial-gradient(circle, #7C3AED, transparent 70%); animation: floatOrb1 12s ease-in-out infinite alternate; }
+    .orb-2 { width: 400px; height: 400px; bottom: -100px; right: -80px; background: radial-gradient(circle, #0EA5E9, transparent 70%); animation: floatOrb2 10s ease-in-out infinite alternate; }
+    .orb-3 { width: 300px; height: 300px; top: 40%; left: 60%; background: radial-gradient(circle, #EC4899, transparent 70%); animation: floatOrb3 14s ease-in-out infinite alternate; }
+
+    @keyframes floatOrb1 { from{transform:translate(0,0)} to{transform:translate(60px,40px)} }
+    @keyframes floatOrb2 { from{transform:translate(0,0)} to{transform:translate(-50px,-30px)} }
+    @keyframes floatOrb3 { from{transform:translate(0,0)} to{transform:translate(-40px,50px)} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes toastIn { from{opacity:0;transform:translateY(20px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
+    @keyframes popIn { from{opacity:0;transform:scale(0.88)} to{opacity:1;transform:scale(1)} }
+    @keyframes glitch1 { 0%,100%{clip-path:inset(0 0 95% 0)} 20%{clip-path:inset(33% 0 60% 0)} 40%{clip-path:inset(70% 0 5% 0)} 60%{clip-path:inset(15% 0 70% 0)} 80%{clip-path:inset(50% 0 30% 0)} }
+    @keyframes glitch2 { 0%,100%{clip-path:inset(0 0 95% 0)} 20%{clip-path:inset(60% 0 20% 0)} 40%{clip-path:inset(5% 0 80% 0)} 60%{clip-path:inset(80% 0 10% 0)} 80%{clip-path:inset(25% 0 55% 0)} }
+    @keyframes titleGlow { 0%,100%{text-shadow: 0 0 40px rgba(192,132,252,0.3), 0 0 80px rgba(192,132,252,0.1)} 50%{text-shadow: 0 0 60px rgba(192,132,252,0.6), 0 0 120px rgba(192,132,252,0.2)} }
+
+    .screen {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .screen.hidden { opacity: 0; pointer-events: none; transform: scale(0.96); }
+
+    /* ── TITLE BAR ── */
+    #titleBar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 38px; z-index: 200;
+      background: rgba(8,6,14,0.9);
+      border-bottom: 1px solid rgba(192,132,252,0.1);
+      backdrop-filter: blur(20px);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+      -webkit-app-region: drag;
+    }
+
+    .titlebar-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px; letter-spacing: 0.12em;
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      -webkit-app-region: no-drag;
+    }
+
+    .titlebar-controls {
+      display: flex; align-items: center; gap: 8px;
+      -webkit-app-region: no-drag;
+    }
+
+    .tb-btn {
+      width: 13px; height: 13px; border-radius: 50%;
+      border: none; cursor: pointer;
+      transition: all 0.2s; position: relative;
+    }
+    .tb-btn:hover { transform: scale(1.15); }
+    .tb-close { background: #FF5F57; }
+    .tb-min { background: #FFBD2E; }
+    .tb-close:hover::after {
+      content: '×'; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      color: rgba(0,0,0,0.6); font-size: 10px; line-height: 1;
+    }
+    .tb-min:hover::after {
+      content: '−'; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-53%);
+      color: rgba(0,0,0,0.6); font-size: 11px; line-height: 1;
+    }
+
+    /* ── START SCREEN ── */
+    #startScreen {
+      padding-top: 38px;
+      overflow-y: auto;
+      justify-content: flex-start;
+      padding-bottom: 40px;
+    }
+
+    .start-inner {
+      width: min(860px, 94vw);
+      margin: 0 auto;
+      padding-top: 40px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 44px;
+      animation: fadeUp 0.7s ease both;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--accent);
+      background: rgba(192,132,252,0.08);
+      border: 1px solid rgba(192,132,252,0.2);
+      border-radius: 100px; padding: 5px 16px;
+      margin-bottom: 20px;
+    }
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--success); animation: blink 1.8s infinite;
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(64px, 9vw, 110px);
+      letter-spacing: 0.05em; line-height: 0.9;
+      color: #fff;
+      animation: titleGlow 4s ease-in-out infinite;
+      position: relative;
+    }
+
+    .hero-title .t-icon {
+      background: linear-gradient(135deg, var(--accent), var(--neon));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-title .t-coderz {
+      background: linear-gradient(135deg, var(--accent2), var(--accent3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-title::before,
+    .hero-title::after {
+      content: attr(data-text);
+      position: absolute; top: 0; left: 0; width: 100%;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(64px, 9vw, 110px);
+      letter-spacing: 0.05em; line-height: 0.9;
+      pointer-events: none;
+    }
+    .hero-title::before {
+      color: #C084FC; left: 2px;
+      animation: glitch1 5s infinite linear;
+      opacity: 0.4;
+    }
+    .hero-title::after {
+      color: #38BDF8; left: -2px;
+      animation: glitch2 5s infinite linear;
+      opacity: 0.3;
+    }
+
+    .hero-sub {
+      font-size: 15px; color: var(--muted);
+      margin-top: 12px; letter-spacing: 0.05em;
+      font-weight: 400;
+    }
+
+    /* ── MAIN CARD ── */
+    .main-card {
+      background: rgba(16,13,26,0.7);
+      border: 1px solid rgba(192,132,252,0.12);
+      border-radius: 24px;
+      padding: 36px;
+      backdrop-filter: blur(20px);
+      position: relative; overflow: hidden;
+      margin-bottom: 24px;
+      animation: fadeUp 0.7s 0.15s ease both;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .main-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--accent) 30%, var(--accent2) 70%, transparent 100%);
+    }
+
+    .url-section { display: flex; gap: 12px; align-items: flex-end; }
+
+    .input-wrap { flex: 1; }
+    .input-label-text {
+      font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin-bottom: 8px; display: block;
+    }
+
+    .url-input-field {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace; font-size: 14px;
+      color: var(--text); outline: none;
+      transition: all 0.3s; caret-color: var(--accent);
+    }
+    .url-input-field:focus {
+      border-color: rgba(192,132,252,0.5);
+      background: rgba(192,132,252,0.05);
+      box-shadow: 0 0 0 3px rgba(192,132,252,0.1), 0 0 30px rgba(192,132,252,0.05);
+    }
+    .url-input-field::placeholder { color: rgba(255,255,255,0.18); }
+
+    .launch-btn {
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 50%, #0EA5E9 100%);
+      border: none; border-radius: 14px; color: #fff;
+      font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700;
+      cursor: pointer; letter-spacing: 0.04em; white-space: nowrap;
+      position: relative; overflow: hidden;
+      transition: all 0.3s;
+      box-shadow: 0 8px 32px rgba(124,58,237,0.3);
+    }
+    .launch-btn::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .launch-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(124,58,237,0.4); }
+    .launch-btn:hover::before { opacity: 1; }
+    .launch-btn:active { transform: translateY(0); }
+
+    /* ── INFO CARD (replaces rules card) ── */
+    .rules-card {
+      background: rgba(16,13,26,0.7);
+      border: 1px solid rgba(52,211,153,0.1);
+      border-radius: 24px;
+      padding: 36px;
+      backdrop-filter: blur(20px);
+      position: relative; overflow: hidden;
+      animation: fadeUp 0.7s 0.25s ease both;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .rules-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(52,211,153,0.8), transparent);
+    }
+
+    .rules-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .rules-title-text {
+      font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--success);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .rules-badge {
+      background: rgba(52,211,153,0.1);
+      border: 1px solid rgba(52,211,153,0.2);
+      border-radius: 100px; padding: 3px 12px;
+      font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      color: rgba(52,211,153,0.7);
+    }
+
+    .rules-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 600px) { .rules-grid { grid-template-columns: 1fr; } }
+
+    .rule-chip {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 14px; padding: 14px 16px;
+      transition: all 0.2s;
+    }
+    .rule-chip:hover {
+      background: rgba(52,211,153,0.04);
+      border-color: rgba(52,211,153,0.12);
+    }
+    .rule-emoji { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .rule-body {}
+    .rule-name {
+      font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px;
+    }
+    .rule-name em { color: var(--success); font-style: normal; }
+    .rule-keys {
+      font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      color: var(--muted);
+    }
+
+    .rules-warning {
+      margin-top: 18px; padding: 14px 18px;
+      background: rgba(192,132,252,0.05);
+      border: 1px solid rgba(192,132,252,0.15);
+      border-radius: 12px;
+      font-size: 12px; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace; line-height: 1.6;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+
+    /* ── EXAM BAR ── */
+    #examBar {
+      position: fixed; top: 0; left: 0; right: 0; height: 48px;
+      background: rgba(8,6,14,0.96);
+      border-bottom: 1px solid rgba(192,132,252,0.15);
+      backdrop-filter: blur(20px);
+      display: none; align-items: center;
+      padding: 0 20px; z-index: 30; gap: 16px;
+    }
+    #examBar.visible { display: flex; }
+
+    .exam-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px; letter-spacing: 0.1em;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; white-space: nowrap;
+    }
+
+    .exam-divider { width: 1px; height: 20px; background: var(--border); }
+
+    .exam-url {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--muted); flex: 1; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .exam-status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      color: var(--success);
+    }
+    .status-pulse {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--success); animation: blink 2s infinite;
+    }
+
+    .exam-timer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px; color: var(--warn);
+      letter-spacing: 0.1em; font-weight: 500;
+    }
+
+    #examCloseBtn {
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.3);
+      border-radius: 10px; padding: 7px 18px;
+      color: var(--danger);
+      font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px;
+      letter-spacing: 0.04em; white-space: nowrap;
+    }
+    #examCloseBtn:hover { background: rgba(248,113,113,0.2); box-shadow: 0 0 20px rgba(248,113,113,0.2); }
+
+    /* ── CLOSE MODAL ── */
+    #closeModal {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(8,6,14,0.96); backdrop-filter: blur(20px);
+      display: none; align-items: center; justify-content: center;
+    }
+    #closeModal.open { display: flex; }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid rgba(248,113,113,0.2);
+      border-radius: 24px; padding: 40px; width: 420px; max-width: 92vw;
+      position: relative; overflow: hidden;
+      animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+    }
+    .modal-box::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--danger), transparent);
+    }
+    .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .modal-sub {
+      font-size: 13px; color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 28px; line-height: 1.6;
+    }
+    .modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+    .btn-cancel {
+      flex: 1; padding: 13px;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 12px; color: var(--muted);
+      font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.25s;
+    }
+    .btn-cancel:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+    .btn-close-app {
+      flex: 1; padding: 13px;
+      background: linear-gradient(135deg, #EF4444, #B91C1C);
+      border: none; border-radius: 12px; color: #fff;
+      font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.25s;
+    }
+    .btn-close-app:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(239,68,68,0.35); }
+
+    .modal-err {
+      color: var(--danger); font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 12px; opacity: 0; transition: opacity 0.3s;
+    }
+    .modal-err.show { opacity: 1; }
+
+    .field-label {
+      font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin-bottom: 8px; display: block; text-align: left;
+    }
+
+    .pass-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 14px 18px;
+      font-family: 'JetBrains Mono', monospace; font-size: 15px;
+      color: var(--text); outline: none;
+      transition: all 0.3s; caret-color: var(--accent);
+      margin-bottom: 14px;
+    }
+    .pass-input:focus {
+      border-color: rgba(192,132,252,0.5);
+      background: rgba(192,132,252,0.04);
+      box-shadow: 0 0 0 3px rgba(192,132,252,0.1);
+    }
+    .pass-input::placeholder { color: rgba(255,255,255,0.15); letter-spacing: 0.05em; }
+
+    /* ── TOAST ── */
+    .toast-wrap {
+      position: fixed; bottom: 28px; left: 50%;
+      transform: translateX(-50%); z-index: 500;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px; pointer-events: none;
+    }
+    .toast {
+      padding: 11px 22px; border-radius: 12px;
+      font-size: 13px; font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.04em; white-space: nowrap;
+      animation: toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .toast.danger { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: var(--danger); }
+    .toast.success { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: var(--success); }
+    .toast.warn { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); color: var(--warn); }
+
+    .shake { animation: shake 0.4s ease; }
+  </style>
+</head>
+<body>
+
+<!-- BG -->
+<div class="bg-grid"></div>
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- ═══ TITLE BAR ═══ -->
+<div id="titleBar">
+  <div class="titlebar-brand">ICONCODERZ · SECUREEXAM</div>
+  <div class="titlebar-controls">
+    <button class="tb-btn tb-min" id="minBtn" title="Minimize"></button>
+    <button class="tb-btn tb-close" id="closeTBBtn" title="Close"></button>
+  </div>
+</div>
+
+<!-- ═══ START SCREEN ═══ -->
+<div class="screen" id="startScreen">
+  <div class="start-inner">
+
+    <div class="hero">
+      <div class="hero-eyebrow">
+        <span class="live-dot"></span>
+        Secure Exam Environment · v2.0
+      </div>
+      <h1 class="hero-title" data-text="ICONCODERZ">
+        <span class="t-icon">ICON</span><span class="t-coderz">CODERZ</span>
+      </h1>
+      <p class="hero-sub">Controlled Browser for Online Assessment</p>
+    </div>
+
+    <div class="main-card">
+      <span class="input-label-text">🌐 Enter Exam URL</span>
+      <div class="url-section">
+        <div class="input-wrap">
+          <input type="url" id="urlInput" class="url-input-field"
+            placeholder="https://exam.example.com"
+            spellcheck="false" autocomplete="off"
+            onkeydown="if(event.key==='Enter')startExam()"
+          />
+        </div>
+        <button class="launch-btn" onclick="startExam()">
+          ⚡ Enter Exam
+        </button>
+      </div>
+    </div>
+
+    <div class="rules-card">
+      <div class="rules-header">
+        <div class="rules-title-text">
+          ✅ Safe Mode — How It Works
+        </div>
+        <div class="rules-badge">4 features</div>
+      </div>
+
+      <div class="rules-grid">
+        <div class="rule-chip">
+          <div class="rule-emoji">🖥️</div>
+          <div class="rule-body">
+            <div class="rule-name"><em>Fullscreen Mode</em></div>
+            <div class="rule-keys">Website opens in kiosk fullscreen</div>
+          </div>
+        </div>
+        <div class="rule-chip">
+          <div class="rule-emoji">🔒</div>
+          <div class="rule-body">
+            <div class="rule-name"><em>Password-Protected Exit</em></div>
+            <div class="rule-keys">Admin password required to close</div>
+          </div>
+        </div>
+        <div class="rule-chip">
+          <div class="rule-emoji">⏱️</div>
+          <div class="rule-body">
+            <div class="rule-name"><em>Live Exam Timer</em></div>
+            <div class="rule-keys">Tracks elapsed exam session time</div>
+          </div>
+        </div>
+        <div class="rule-chip">
+          <div class="rule-emoji">🌐</div>
+          <div class="rule-body">
+            <div class="rule-name"><em>Any URL Supported</em></div>
+            <div class="rule-keys">Works with any exam platform</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rules-warning">
+        <span>💡</span>
+        <span>Enter the exam URL above and click <strong>Enter Exam</strong> to launch in safe fullscreen mode. To close the session, use the <strong>Close Exam</strong> button and enter the admin password.</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══ EXAM BAR ═══ -->
+<div id="examBar">
+  <span class="exam-brand">IconCoderz</span>
+  <div class="exam-divider"></div>
+  <span class="exam-url" id="examUrlDisplay">—</span>
+  <div class="exam-status">
+    <div class="status-pulse"></div>
+    LIVE
+  </div>
+  <span class="exam-timer" id="timerDisplay" style="display:none"></span>
+  <button id="examCloseBtn" onclick="closeExam()">✕ Close Exam</button>
+</div>
+
+
+<!-- ═══ CLOSE MODAL ═══ -->
+<div id="closeModal">
+  <div class="modal-box" id="closeModalBox">
+    <div class="modal-title">🔐 Admin Verification</div>
+    <div class="modal-sub">Enter the administrator password to close the exam session.</div>
+    <label class="field-label">🔑 Admin Password</label>
+    <input type="password" id="closePasswordInput" class="pass-input"
+      placeholder="Enter admin password"
+      autocomplete="off"
+      onkeydown="if(event.key==='Enter')confirmClose()"
+    />
+    <div class="modal-err" id="closeWrongMsg">❌ Incorrect password.</div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeCloseModal()">Cancel</button>
+      <button class="btn-close-app" onclick="confirmClose()">✕ Close Session</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toastContainer"></div>
+
+<script src="renderer.js"></script>
+</body>
+</html>
