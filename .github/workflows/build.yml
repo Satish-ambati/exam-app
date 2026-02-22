@@ -5,35 +5,45 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest]
+  build-windows:
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install dependencies
-        run: npm install
+      - run: npm install
 
-      - name: Build app
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            npm run win
-          else
-            npm run linux
-          fi
+      - run: npx electron-builder --win nsis
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: build-files
-          path: dist/
+          name: windows-build
+          path: dist/*.exe
+
+
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - run: sudo apt update
+      - run: sudo apt install -y fakeroot dpkg
+
+      - run: npm install
+
+      - run: npx electron-builder --linux deb
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: dist/*.deb
